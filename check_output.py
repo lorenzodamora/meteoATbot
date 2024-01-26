@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/home/ubuntu/Magnus/PycharmProj/persone/Adora/meteobot/python/python3.12/site-packages')
-
 from pushbullet import Pushbullet
 from time import sleep
 from os.path import getmtime

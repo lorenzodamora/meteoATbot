@@ -3,7 +3,7 @@ questo file è l'event handler, evito di usare i filter per evitare certi strani
 """
 from pyrogram import Client
 from pyrogram.types import Message as Msg
-from pyrogram.enums import ChatMemberStatus
+from pyrogram.enums import ChatMemberStatus, ChatType
 from asyncio import create_task
 
 
@@ -47,6 +47,9 @@ def check_cmd(cmd: str, comandi: dict[str, int]) -> bool:
 
 @Client.on_message()
 async def event_handler(client: Client, m: Msg):
+    if not (m.chat.type == ChatType.GROUP or m.chat.type == ChatType.SUPERGROUP):
+        await m.reply("work only in group")
+        return
     ch = m.chat.id
     # member: ChatMember = await client.get_chat_member(ch, m.from_user.id)
     if (await client.get_chat_member(ch, m.from_user.id)).status is not ChatMemberStatus.ADMINISTRATOR:
@@ -69,7 +72,8 @@ async def handle_commands(client: Client, msg: Msg):
     if not check_cmd(
         cmd_txt,
         {
-            'h': 2, 'help': 2, '?': 2, 'commands': 2, 'c': 2,
+            'h': 1, 'help': 1, '?': 1, 'commands': 1, 'c': 1,
+            'help@MeteoATbot': 2,
             'add_pic': 2, 'addpic': 2, 'add': 2,
             'show_pic': 2, 'showpic': 2, 'show': 2,
             'edit_pic': 2, 'editpic': 2, 'edit': 2,
@@ -80,7 +84,7 @@ async def handle_commands(client: Client, msg: Msg):
         return
 
     # TODO parametri
-    if check_cmd(cmd_txt, {'h': 2, 'help': 2, '?': 2, 'commands': 2, 'c': 2}):
+    if check_cmd(cmd_txt, {'h': 1, 'help': 1, '?': 1, 'commands': 1, 'c': 1, 'help@MeteoATbot': 2}):
         id_ = msg.chat.id
         await msg.delete()
         await client.send_message(id_, "questo bot imposta pic semiautomaticamente nel gruppo.\n"
@@ -99,6 +103,49 @@ async def handle_commands(client: Client, msg: Msg):
         await client.send_photo("me", phid, "caption test")
         async for message in client.get_chat_history("me"):
             await client.send_message(GROUP_ID, str(vars(message)))
+
+    elif cmd_txt == "test":
+        from .myParameters import TEST_GROUP_ID
+        ###
+        from pyrogram.raw.functions.bots import GetBotInfo
+        from pyrogram.raw.types import InputUser
+        from pyrogram.raw.functions.users import GetUsers
+        # bot.send_message(chat_id=TEST_GROUP_ID, text=str(bot.get_me()))
+        inp = InputUser(user_id=6724866148, access_hash=1952675726081265999)
+        # bot.send_message(chat_id=TEST_GROUP_ID, text=str(bot.invoke(GetUsers(id=[inp]))))
+        bot.send_message(chat_id=TEST_GROUP_ID, text=str(bot.invoke(
+            GetBotInfo(lang_code="en", bot=inp)
+        )))
+        from pyrogram.raw.types import InputUser
+        from pyrogram.raw.functions.users import GetFullUser
+        from pyrogram.enums import ParseMode
+        from asyncio import sleep
+        ps = ParseMode.DISABLED
+        result = await client.invoke(GetFullUser(id=InputUser(user_id=6724866148, access_hash=1952675726081265999)))
+        txt = str(result)
+        chunk_s = 4096
+        chunks = [txt[i:i + chunk_s] for i in range(0, len(txt), chunk_s)]
+
+        for chunk in chunks:
+            uncomplet = True
+            while uncomplet:
+                try:
+                    await client.send_message(chat_id=TEST_GROUP_ID, text=str(chunk), parse_mode=ps)
+                    uncomplet = False
+                except:
+                    await sleep(20)
+            # end while
+        # end for
+        ###
+        from pyrogram.raw.functions.bots import GetBotInfo, SetBotInfo
+        from pyrogram.raw.types.bots import BotInfo
+        from pyrogram.enums import ParseMode
+        peer = await client.resolve_peer("MeteoATbot")
+        await client.send_message(chat_id=TEST_GROUP_ID, text=str(peer), parse_mode=ParseMode.DISABLED)
+        # r = await client.invoke(GetBotInfo(lang_code="", bot=peer))
+        r: BotInfo = await client.invoke(GetBotInfo(lang_code=""))
+        await client.send_message(chat_id=TEST_GROUP_ID, text=str(r), parse_mode=ParseMode.DISABLED)
+        await client.invoke(SetBotInfo(lang_code="", name=r.name, description="contatta @ill_magnus", about="about"))
         '''
 
     elif check_cmd(cmd_txt, {'add_pic': 2, 'addpic': 2, 'add': 2}):

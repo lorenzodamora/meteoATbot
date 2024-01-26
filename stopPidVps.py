@@ -1,8 +1,8 @@
-def stop_process_by_pid(pid):
-    import os
-    import signal
+def stop_process_by_pid(pid: int):
+    from os import kill
+    from signal import SIGINT
     try:
-        os.kill(pid, signal.SIGINT)
+        kill(pid, SIGINT)
         print(f"Process with PID {pid} stopped with interrupt signal (Ctrl+C) successfully.")
     except ProcessLookupError:
         print(f"Error: Process with PID {pid} not found.")
