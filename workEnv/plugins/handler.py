@@ -28,7 +28,7 @@ def check_cmd(cmd: str, comandi: dict[str, int]) -> bool:
     """
     for key, value in comandi.items():
         key = key.lower()
-        # cmd = cmd.lower()
+        cmd = cmd.lower()
         match value:
             case 1:
                 if cmd == key:
@@ -52,7 +52,10 @@ async def event_handler(client: Client, m: Msg):
         return
     ch = m.chat.id
     # member: ChatMember = await client.get_chat_member(ch, m.from_user.id)
-    if (await client.get_chat_member(ch, m.from_user.id)).status is not ChatMemberStatus.ADMINISTRATOR:
+    if (
+        (await client.get_chat_member(ch, m.from_user.id)).status not in
+        [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]
+    ):
         return
 
     from .myParameters import TEST_GROUP_ID, GROUP_ID
@@ -61,13 +64,17 @@ async def event_handler(client: Client, m: Msg):
         await m.reply(f"questa chat non è abilitata, contatta @Ill_Magnus")
         return
 
-    if m.text and m.text[0] == '/':
-        _ = create_task(handle_commands(client, m))
+    if m.text:
+        import chardet
+        result = chardet.detect(m.text.encode())
+        if str(result['encoding']) != 'None':
+            if m.text.startswith('/'):
+                _ = create_task(handle_commands(client, m))
 
 
 async def handle_commands(client: Client, msg: Msg):
     # Estrai il testo del messaggio dopo "/"
-    cmd_txt = msg.text[1:].lower()
+    cmd_txt = msg.text[1:]
 
     if not check_cmd(
         cmd_txt,
@@ -92,7 +99,8 @@ async def handle_commands(client: Client, msg: Msg):
                                        "per visualizzare le pic già inserite fare '`/show h`'\n"
                                        "per modificare una pic già inserita '`/edit h`'\n"
                                        "per eliminare una pic '`/delete h`'\n"
-                                       "per impostare una pic '`/set h`'")
+                                       "per impostare una pic '`/set h`'\n"
+                                       "\n per evitare problemi fare attenzione al numero di spazi")
 
         '''
     elif cmd_txt == "test":
@@ -160,7 +168,9 @@ async def handle_commands(client: Client, msg: Msg):
                 msg.chat.id,
                 "Quando vuoi aggiungere una pic devi innanzitutto inviare l'immagine, e nella sua descrizione "
                 "dargli il nome di identificazione (univoco)\n"
-                "per semplicità consiglio di non usare simboli, solo caratteri alfanumerici semplici [A-z][0-9]")
+                "dopodiché rispondere a quel messaggio con `/add`\n"
+                "per semplicità consiglio di non usare simboli, "
+                "solo caratteri alfanumerici semplici minuscoli [a-z][0-9]")
             return
         from .commands import add_pic
         await add_pic(client, rmsg.photo.file_id, rmsg.caption, rmsg.chat.id)
