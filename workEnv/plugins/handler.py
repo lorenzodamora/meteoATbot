@@ -51,11 +51,15 @@ async def event_handler(client: Client, m: Msg):
         await m.reply("work only in group")
         return
     ch = m.chat.id
-    # member: ChatMember = await client.get_chat_member(ch, m.from_user.id)
-    if (
-        (await client.get_chat_member(ch, m.from_user.id)).status not in
-        [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]
-    ):
+    from pyrogram.errors.exceptions.bad_request_400 import ChannelPrivate
+    try:
+        # member: ChatMember = await client.get_chat_member(ch, m.from_user.id)
+        if (
+            (await client.get_chat_member(ch, m.from_user.id)).status not in
+            [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]
+        ):
+            return
+    except ChannelPrivate:
         return
 
     from .myParameters import TEST_GROUP_ID, GROUP_ID
