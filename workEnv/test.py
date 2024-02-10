@@ -4,7 +4,7 @@ from os.path import exists
 if not exists("../database/allPic.csv"):
     open("../database/allPic.csv", 'w').write("name;id\n")
 
-# crea accanto a main.py il file myClientParameters.py con dentro queste tre variabili, io l'ho messo in .gitignore
+# crea accanto a mMain.py il file myClientParameters.py con dentro queste tre variabili, io l'ho messo in .gitignore
 from myClientParameters import t_id, t_hash, test_token
 from plugins.myParameters import TEST_GROUP_ID
 
