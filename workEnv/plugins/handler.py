@@ -53,6 +53,8 @@ async def event_handler(client: Client, m: Msg):
     ch = m.chat.id
     from pyrogram.errors.exceptions.bad_request_400 import ChannelPrivate
     try:
+        if not m.from_user:
+            return
         # member: ChatMember = await client.get_chat_member(ch, m.from_user.id)
         if (
             (await client.get_chat_member(ch, m.from_user.id)).status not in
